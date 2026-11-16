@@ -654,6 +654,13 @@ jobs:
           # Keep the portable build independent of an installed VC++ runtime.
           # RUSTFLAGS replaces .cargo/config.toml, so retain its stack setting.
           RUSTFLAGS: "-C target-feature=+crt-static -C link-arg=/STACK:8000000"
+          # Fork: build faster on the 4-core runner. .cargo/config.toml limits
+          # Cargo to one job for 16 GiB desktops, which also starves rustc's
+          # codegen threads; parallel codegen without LTO trades a little
+          # runtime speed for a much shorter build.
+          CARGO_BUILD_JOBS: "4"
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+          CARGO_PROFILE_RELEASE_LTO: "off"
           FLECTAR_GOOGLE_DESKTOP_CLIENT_ID: ${{ secrets.FLECTAR_GOOGLE_DESKTOP_CLIENT_ID }}
           FLECTAR_GOOGLE_DESKTOP_CLIENT_SECRET: ${{ secrets.FLECTAR_GOOGLE_DESKTOP_CLIENT_SECRET }}
           FLECTAR_MICROSOFT_DESKTOP_CLIENT_ID: ${{ secrets.FLECTAR_MICROSOFT_DESKTOP_CLIENT_ID }}
