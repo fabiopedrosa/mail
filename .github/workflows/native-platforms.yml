@@ -6,27 +6,31 @@ on:
       include_linux:
         description: Build Linux packages
         type: boolean
-        default: true
+        default: false
       include_windows:
         description: Build Windows packages
         type: boolean
         default: true
+      include_windows_arm64:
+        description: Also build Windows arm64
+        type: boolean
+        default: false
       include_macos:
         description: Build macOS packages
         type: boolean
-        default: true
+        default: false
       run_quality:
         description: Run the full quality suite (disable only for manual packaging checks)
         type: boolean
-        default: true
+        default: false
       include_android:
         description: Build the signed Android APK
         type: boolean
-        default: true
+        default: false
       include_ios:
         description: Build the unsigned iOS app
         type: boolean
-        default: true
+        default: false
   pull_request:
     paths:
       - ".github/workflows/native-platforms.yml"
@@ -396,12 +400,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - arch: x64
-            runner: windows-2025
-          - arch: arm64
-            runner: windows-11-arm
-    runs-on: ${{ matrix.runner }}
+        # Fork: arm64 only on release tags or when asked.
+        arch: ${{ fromJSON((github.event_name == 'push' || inputs.include_windows_arm64) && '["x64","arm64"]' || '["x64"]') }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'windows-11-arm' || 'windows-2025' }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
@@ -552,6 +553,7 @@ jobs:
 
   microsoft-store:
     needs: [metadata, windows]
+    if: github.event_name == 'push'
     name: Microsoft Store bundle
     runs-on: windows-2025
     steps:
