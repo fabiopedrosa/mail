@@ -7,10 +7,11 @@ export global Shortcuts {
     out property <keys> compose: @keys(Control + N);
     out property <keys> search: @keys(Control + K);
     out property <keys> search-alternate: @keys(Slash);
-    out property <keys> archive: @keys(A);
+    // Fork: Delete archives; trash moves to Shift+Delete.
+    out property <keys> archive: @keys(Delete);
     out property <keys> spam: @keys(J);
     // Mac keyboards label Backspace "delete", and Apple Mail trashes with it.
-    out property <keys> trash: KeyboardKeys.apple ? @keys(Backspace) : @keys(Delete);
+    out property <keys> trash: KeyboardKeys.apple ? @keys(Backspace) : @keys(Shift + Delete);
     // Outlook's and Evolution's keys for moving and copying mail to a
     // folder.
     out property <keys> move-to: @keys(Control + Shift + V);
