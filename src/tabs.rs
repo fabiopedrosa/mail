@@ -866,6 +866,9 @@ impl Tabs {
         };
         match command {
             Command::New => self.create(),
+            // As in Chrome, closing the last tab closes the window, through
+            // the close button's path so close-to-tray still applies.
+            Command::Close if count == 1 => app.global::<crate::WindowChrome>().invoke_close(),
             Command::Close => {
                 let id = self.strip.borrow().tabs[active].id;
                 self.close(id);
