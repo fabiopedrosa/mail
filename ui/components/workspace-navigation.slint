@@ -77,15 +77,11 @@ export component ProductRail inherits Rectangle {
     in property <color> title-color;
     in property <color> muted-color;
     out property <string> tooltip-text: mail-item.hovered ? mail-item.label
-        : calendar-item.hovered ? calendar-item.label
         : files-item.hovered ? files-item.label
-        : contacts-item.hovered ? contacts-item.label
         : settings-item.hovered ? settings-item.label
         : "";
     out property <length> tooltip-y: mail-item.hovered ? mail-item.y + 10px
-        : calendar-item.hovered ? calendar-item.y + 10px
         : files-item.hovered ? files-item.y + 10px
-        : contacts-item.hovered ? contacts-item.y + 10px
         : settings-item.hovered ? settings-item.y + 10px
         : 0px;
     callback open-settings;
@@ -112,6 +108,7 @@ export component ProductRail inherits Rectangle {
         padding-left: 0px;
         spacing: 8px;
 
+        // Fork: Calendar and Contacts are left out of the navigation.
         mail-item := ProductRailItem {
             label: @tr("Mail");
             outline-icon: @image-url("../icons/lucide/outline/mail.svg");
@@ -121,17 +118,6 @@ export component ProductRail inherits Rectangle {
             accent-background: root.accent-background;
             muted-color: root.muted-color;
             clicked => { root.select-view("mail"); }
-        }
-
-        calendar-item := ProductRailItem {
-            label: @tr("Calendar");
-            outline-icon: @image-url("../icons/lucide/outline/calendar.svg");
-            filled-icon: @image-url("../icons/lucide/filled/calendar.svg");
-            active: root.active-view == "calendar";
-            accent-color: root.accent-color;
-            accent-background: root.accent-background;
-            muted-color: root.muted-color;
-            clicked => { root.select-view("calendar"); }
         }
 
         files-item := ProductRailItem {
@@ -144,18 +130,6 @@ export component ProductRail inherits Rectangle {
             muted-color: root.muted-color;
             clicked => { root.select-view("files"); }
         }
-
-        contacts-item := ProductRailItem {
-            label: @tr("Contacts");
-            outline-icon: @image-url("../icons/lucide/outline/contacts.svg");
-            filled-icon: @image-url("../icons/lucide/filled/contacts.svg");
-            active: root.active-view == "contacts";
-            accent-color: root.accent-color;
-            accent-background: root.accent-background;
-            muted-color: root.muted-color;
-            clicked => { root.select-view("contacts"); }
-        }
-
 
         Rectangle { vertical-stretch: 1; }
 
@@ -292,18 +266,6 @@ export component CompactProductNav inherits Rectangle {
         }
         CompactProductNavItem {
             horizontal-stretch: 1;
-            label: @tr("Calendar");
-            outline-icon: @image-url("../icons/lucide/outline/calendar.svg");
-            filled-icon: @image-url("../icons/lucide/filled/calendar.svg");
-            active: root.active-view == "calendar";
-            accent-color: root.accent-color;
-            active-background: root.accent-background;
-            muted-color: root.muted-color;
-            interactive: root.interactive;
-            clicked => { root.select-view("calendar"); }
-        }
-        CompactProductNavItem {
-            horizontal-stretch: 1;
             label: @tr("Files");
             outline-icon: @image-url("../icons/lucide/outline/files.svg");
             filled-icon: @image-url("../icons/lucide/filled/files.svg");
@@ -313,18 +275,6 @@ export component CompactProductNav inherits Rectangle {
             muted-color: root.muted-color;
             interactive: root.interactive;
             clicked => { root.select-view("files"); }
-        }
-        CompactProductNavItem {
-            horizontal-stretch: 1;
-            label: @tr("Contacts");
-            outline-icon: @image-url("../icons/lucide/outline/contacts.svg");
-            filled-icon: @image-url("../icons/lucide/filled/contacts.svg");
-            active: root.active-view == "contacts";
-            accent-color: root.accent-color;
-            active-background: root.accent-background;
-            muted-color: root.muted-color;
-            interactive: root.interactive;
-            clicked => { root.select-view("contacts"); }
         }
     }
 }
