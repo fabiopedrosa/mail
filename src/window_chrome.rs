@@ -259,14 +259,22 @@ fn register_desktop_events(app: &AppWindow) {
             // the composer and the calendar editor, which keep their keys.
             winit::event::WindowEvent::KeyboardInput { event, .. }
                 if event.state.is_pressed()
-                    && app.global::<crate::TabsUi>().get_enabled()
                     && !app.global::<crate::ComposerUi>().get_open()
                     && !app.get_calendar_editor_shown() =>
             {
-                if let Some(command) = crate::tabs::shortcut(&event.logical_key, modifiers.get()) {
-                    app.global::<crate::TabsUi>()
-                        .invoke_command(command.key().into());
-                    return EventResult::PreventDefault;
+                match crate::tabs::shortcut(&event.logical_key, modifiers.get()) {
+                    Some(command) if app.global::<crate::TabsUi>().get_enabled() => {
+                        app.global::<crate::TabsUi>()
+                            .invoke_command(command.key().into());
+                        return EventResult::PreventDefault;
+                    }
+                    // Without tabs, Control+W closes the window, as Chrome
+                    // does with one tab left.
+                    Some(crate::tabs::Command::Close) if !event.repeat => {
+                        close(app.window());
+                        return EventResult::PreventDefault;
+                    }
+                    _ => {}
                 }
             }
             winit::event::WindowEvent::Focused(focused) => {
