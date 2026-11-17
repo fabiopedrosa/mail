@@ -858,3 +858,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: bash scripts/publish-release.sh
+
+  notify:
+    name: Pushbullet notification
+    if: always() && github.repository == 'fabiopedrosa/mail'
+    needs: [metadata, quality, linux, rpm, rpm-test, flatpak, windows, microsoft-store, macos, android, ios, release]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Pushbullet Notification
+        uses: ShaunLWM/action-pushbullet@master
+        env:
+          PB_TOKEN: ${{ secrets.PB_TOKEN }}
+          PB_TITLE: flectar-mail
+          PB_TEXT: >-
+            ${{ (contains(needs.*.result, 'failure') && 'Build failed')
+            || (contains(needs.*.result, 'cancelled') && 'Build cancelled')
+            || 'Build succeeded' }} (${{ github.ref_name }} ${{ github.sha }})
