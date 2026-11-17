@@ -215,6 +215,7 @@ pub(super) fn apply_email(
     html.hash(&mut hash);
     let key = (hash.finish(), allow_remote_images);
     if same_message && email_renderer.borrow().loaded_key == Some(key) {
+        crate::open_timings::unchanged();
         return Ok(());
     }
     let blocked = renderer::has_remote_images(html) && !allow_remote_images;
@@ -252,6 +253,7 @@ pub(super) fn apply_email(
     let prepared = match prepare_result {
         Ok(prepared) => prepared,
         Err(error) => {
+            crate::open_timings::failed(&error);
             email_renderer.borrow_mut().clear();
             clear_reader_projection(app);
             reader.set_notice(error.into());
@@ -260,6 +262,9 @@ pub(super) fn apply_email(
         }
     };
     reader.set_available(true);
+    if !email.body_pending && email.html.is_some() {
+        crate::open_timings::prepared(email.id, html.len(), use_wgpu);
+    }
     // Publish readable text independently of the raster surface.
     let plain_text = prepared.plain_text.clone();
 
@@ -279,6 +284,7 @@ pub(super) fn apply_email(
                 Ok(Some(frame)) => frame,
                 Ok(None) => return Ok(()),
                 Err(error) => {
+                    crate::open_timings::failed(&error);
                     clear_reader_projection(app);
                     reader.set_notice(error.into());
                     app.set_text_mode(true);
@@ -295,6 +301,8 @@ pub(super) fn apply_email(
         app.set_selected_plain_text(plain_text.into());
         update_email_selection(app, email_renderer);
         apply_cpu_frame(app, rendered);
+        let (loading, ready, failed, blocked) = email_renderer.borrow().resource_counts();
+        crate::open_timings::resources(loading, ready, failed, blocked);
         return Ok(());
     }
 
@@ -360,6 +368,7 @@ pub(super) fn apply_cpu_frame(app: &AppWindow, rendered: RenderedEmail) {
         app.set_email_links(ModelRc::new(VecModel::from(links)));
     }
     app.set_render_status(UiMessage::plain("Message ready."));
+    crate::open_timings::frame();
     if let Some(start) = start {
         eprintln!(
             "email Slint model update: {:.2}ms",
@@ -394,6 +403,10 @@ pub(super) fn open_email_link(opener: &ExternalUrlOpener, url: &str) -> Result<(
 
 pub(super) fn sync_reader_metadata(app: &AppWindow, renderer: &Rc<RefCell<GpuEmailRenderer>>) {
     let renderer = renderer.borrow();
+    if renderer.has_document() {
+        let (loading, ready, failed, blocked) = renderer.resource_counts();
+        crate::open_timings::resources(loading, ready, failed, blocked);
+    }
     let reader = app.global::<EmailReader>();
     reader.set_zoom(renderer.zoom);
     reader.set_auto_fit(renderer.auto_fit);

@@ -74,6 +74,7 @@ pub use app_language::AppLanguage;
 mod number_format;
 mod privacy_consent;
 pub use privacy_consent::PrivacyConsent;
+mod open_timings;
 mod oauth_browser;
 pub mod pdf_preview;
 mod photo_shrink;
@@ -3638,6 +3639,7 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
             let next = generation.get().wrapping_add(1);
             generation.set(next);
             pending.set(Some((request_id, selected_message_id, next)));
+            open_timings::mark("load_requested");
             row.html = None;
             row.text = None;
             requests.send_replace(Some((next, (core, row, selected_message_id))));
@@ -4360,6 +4362,16 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
                                 .conversation_messages
                                 .iter()
                                 .any(|message| message.body_pending);
+                            open_timings::loaded(
+                                state
+                                    .conversation_messages
+                                    .get(state.conversation_selected_index)
+                                    .is_some_and(|message| message.body_pending),
+                            );
+                            open_timings::note(
+                                "thread_messages",
+                                state.conversation_messages.len(),
+                            );
                             if let Some(current) = state
                                 .messages
                                 .iter_mut()

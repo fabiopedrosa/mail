@@ -823,6 +823,33 @@ impl GpuEmailRenderer {
         self.email.is_some()
     }
 
+    /// The open message's image and font requests as (loading, ready, failed,
+    /// blocked or over budget), for `open_timings`.
+    pub fn resource_counts(&self) -> (usize, usize, usize, usize) {
+        use crate::remote::ResourceState;
+        let Some(email) = &self.email else {
+            return (0, 0, 0, 0);
+        };
+        let document = email.document.id();
+        let ledger = self
+            .resources
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut counts = (0, 0, 0, 0);
+        for ((id, _), state) in ledger.iter() {
+            if *id != document {
+                continue;
+            }
+            match state {
+                ResourceState::Loading => counts.0 += 1,
+                ResourceState::Ready => counts.1 += 1,
+                ResourceState::Failed => counts.2 += 1,
+                ResourceState::Blocked | ResourceState::Limited => counts.3 += 1,
+            }
+        }
+        counts
+    }
+
     pub fn needs_repaint(&self) -> bool {
         !self.suspended && (self.dirty || self.paint_dirty || self.region_dirty)
     }
