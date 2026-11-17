@@ -1112,3 +1112,19 @@ jobs:
           path: site
       - id: deploy
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  notify:
+    name: Pushbullet notification
+    if: always() && github.repository == 'fabiopedrosa/mail'
+    needs: [metadata, quality, linux, rpm, rpm-test, flatpak, windows, microsoft-store, macos, android, ios, release]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Pushbullet Notification
+        uses: ShaunLWM/action-pushbullet@master
+        env:
+          PB_TOKEN: ${{ secrets.PB_TOKEN }}
+          PB_TITLE: flectar-mail
+          PB_TEXT: >-
+            ${{ (contains(needs.*.result, 'failure') && 'Build failed')
+            || (contains(needs.*.result, 'cancelled') && 'Build cancelled')
+            || 'Build succeeded' }} (${{ github.ref_name }} ${{ github.sha }})
