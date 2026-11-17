@@ -14,3 +14,12 @@ blocks the session. Builds and checks happen in GitHub Actions instead:
 
 To verify a change: commit, push, then follow the run with `gh run list` /
 `gh run watch` and read failures with `gh run view --log-failed`.
+
+## Message open timings
+
+Every message open appends one JSON line to
+`%LOCALAPPDATA%\flectar-mail\logs\open-timings.jsonl` (rotates to
+`open-timings.1.jsonl` past 4 MB; `FLECTAR_OPEN_TIMINGS=0` turns it off).
+`phases_ms` holds milliseconds since the click for `load_requested`,
+`body_downloading`, `loaded`, `prepared`, `first_frame` and `resources_ready`.
+See `src/open_timings.rs`.

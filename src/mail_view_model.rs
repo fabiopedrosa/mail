@@ -367,6 +367,7 @@ pub(super) fn select_message(
         state.selected_id = Some(id);
         state.preview_closed = false;
     }
+    crate::open_timings::start(id, "list");
     render_current(app, state, runtime)
 }
 
@@ -814,6 +815,9 @@ pub(super) fn select_thread_message(
             return Ok(());
         }
         state.conversation_selected_index = index;
+        if let Some(conversation) = state.conversation_owner_id {
+            crate::open_timings::start(conversation, "thread");
+        }
     }
     app.global::<ReaderUi>().set_text_mode(false);
     app.global::<ReaderUi>().set_source_mode(false);
