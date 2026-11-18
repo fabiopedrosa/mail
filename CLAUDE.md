@@ -27,6 +27,13 @@ git rebase upstream/main
 git push --force-with-lease origin main
 ```
 
+Every rebase ends with a summary for the user of what upstream brought in
+(`git log --oneline <old-base>..upstream/main`): grouped by theme (features,
+fixes, Gmail/sync, rendering, l10n, CI…), one line each in plain words, with
+upstream PR numbers where the merge commits name them. Call out anything that
+touches code our fork changed, and any fork commit dropped because upstream
+now covers it.
+
 Resolve conflicts in favour of keeping our fork's changes on top. If a fork
 commit is now covered upstream, drop it. Push and let `quality.yml` verify the
 result.
