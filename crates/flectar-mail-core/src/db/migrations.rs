@@ -68,6 +68,9 @@ const MIGRATIONS: &[Migration] = &[
     Migration::Plain(include_str!("migrations/049_folder_since.sql")),
     Migration::Plain(include_str!("migrations/050_rule_tabs.sql")),
     Migration::Plain(include_str!("migrations/051_message_translations.sql")),
+    Migration::Plain(include_str!(
+        "migrations/052_gmail_double_decoded_bodies.sql"
+    )),
 ];
 pub const LATEST_VERSION: i64 = MIGRATIONS.len() as i64;
 
@@ -78,6 +81,7 @@ fn convert(conn: &Connection, version: i64) -> Result<()> {
         13 => super::repo::contact_entries::migrate(conn),
         19 => clean_snippets(conn),
         21 => find_verification_codes(conn),
+        52 => refetch_double_decoded_gmail_bodies(conn),
         _ => Ok(()),
     }
 }
@@ -124,6 +128,54 @@ fn find_verification_codes(conn: &Connection) -> Result<()> {
 /// the snippet builders, so rows stream through without being loaded at once
 /// and only the ones that change are written.
 ///
+/// Gmail hands text parts over as UTF-8 whatever charset they declare, and
+/// bodies were once decoded again with that charset, so "ç" was stored as
+/// "Ã§". Such bodies go back to `none` and are fetched again when opened.
+fn refetch_double_decoded_gmail_bodies(conn: &Connection) -> Result<()> {
+    use rusqlite::functions::FunctionFlags;
+    let flags = FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC;
+    conn.create_scalar_function("double_decoded", 1, flags, |ctx| {
+        Ok(ctx
+            .get::<Option<String>>(0)?
+            .is_some_and(|text| looks_double_decoded(&text)))
+    })?;
+    let reset = conn.execute_batch(
+        "UPDATE messages SET body_state = 'none'
+         WHERE body_state = 'cached'
+           AND account_id IN (SELECT id FROM accounts WHERE mail_protocol = 'gmail')
+           AND id IN (SELECT message_id FROM message_bodies
+                      WHERE double_decoded(html_body) OR double_decoded(text_body));",
+    );
+    conn.remove_function("double_decoded", 1)?;
+    Ok(reset?)
+}
+
+/// Does `text` hold UTF-8 that was read as Windows-1252/Latin-1? A run of
+/// characters that each map to one byte at or above 0x80 and that together
+/// form valid UTF-8 ("Ã§" is C3 A7, "ç") does; a lone accented letter never.
+fn looks_double_decoded(text: &str) -> bool {
+    let single_high_byte = |c: char| -> Option<u8> {
+        if (c as u32) < 0x80 {
+            return None;
+        }
+        let mut buf = [0u8; 4];
+        let (bytes, _, unmappable) = encoding_rs::WINDOWS_1252.encode(c.encode_utf8(&mut buf));
+        (!unmappable && bytes.len() == 1).then(|| bytes[0])
+    };
+    let mut run = Vec::new();
+    for c in text.chars().chain(std::iter::once('\0')) {
+        if let Some(byte) = single_high_byte(c) {
+            run.push(byte);
+            continue;
+        }
+        if run.len() > 1 && std::str::from_utf8(&run).is_ok() {
+            return true;
+        }
+        run.clear();
+    }
+    false
+}
+
 /// A Gmail snippet holding `&` may still be HTML-escaped. Every path that
 /// stores a body-derived snippet also stores the body, so a message with a
 /// body takes its snippet from it again, and one without can only hold
@@ -610,6 +662,48 @@ mod tests {
                 "View this post on the web".into()
             )
         );
+    }
+
+    #[test]
+    fn double_decoded_text_is_recognised() {
+        assert!(looks_double_decoded("Atualiza\u{c3}\u{a7}\u{c3}\u{b5}es"));
+        assert!(looks_double_decoded("it\u{e2}\u{20ac}\u{2122}s"));
+        assert!(!looks_double_decoded("Atualizações está à frente 🤩"));
+        assert!(!looks_double_decoded("plain ascii"));
+    }
+
+    #[test]
+    fn double_decoded_gmail_bodies_are_fetched_again() {
+        let mut conn = staged(51);
+        seed_mail_graph(&conn);
+        conn.execute_batch(
+            "INSERT INTO accounts (
+               id, email, provider, auth_kind, mail_protocol, username, incoming_host,
+               incoming_port, smtp_host, smtp_port, created_at, settings_json
+             ) VALUES (2, 'me@gmail.test', 'gmail', 'oauth2', 'gmail', 'me', 'h', 993,
+                       'h', 587, 0, '{}');
+             INSERT INTO folders (id, account_id, path, role) VALUES (3, 2, 'INBOX', 'inbox');
+             INSERT INTO threads (id, account_id, snippet) VALUES (2, 2, '');
+             INSERT INTO messages (
+               id, account_id, thread_id, folder_id, subject, from_addr, to_json, cc_json,
+               date, snippet, body_state
+             ) VALUES
+               (2, 2, 2, 3, 'Broken', 'a@test.dev', '[]', '[]', 1, '', 'cached'),
+               (3, 2, 2, 3, 'Fine', 'a@test.dev', '[]', '[]', 1, '', 'cached');
+             INSERT INTO message_bodies (message_id, text_body, html_body) VALUES
+               (2, 'Atualiza\u{c3}\u{a7}\u{c3}\u{b5}es', NULL),
+               (3, 'Atualizações', '<p>Atualizações</p>');",
+        )
+        .unwrap();
+        run(&mut conn).unwrap();
+        let states: Vec<String> = conn
+            .prepare("SELECT body_state FROM messages WHERE id IN (2, 3) ORDER BY id")
+            .unwrap()
+            .query_map([], |row| row.get(0))
+            .unwrap()
+            .collect::<rusqlite::Result<_>>()
+            .unwrap();
+        assert_eq!(states, ["none", "cached"]);
     }
 
     #[test]

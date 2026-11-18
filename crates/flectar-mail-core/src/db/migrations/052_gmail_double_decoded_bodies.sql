@@ -1,0 +1,3 @@
+-- Gmail bodies stored while text parts were decoded twice (UTF-8 bytes read
+-- again as the declared charset, "ç" shown as "Ã§") are fetched again when
+-- opened. The conversion in migrations.rs finds them.
