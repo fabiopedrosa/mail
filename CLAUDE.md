@@ -15,6 +15,22 @@ blocks the session. Builds and checks happen in GitHub Actions instead:
 To verify a change: commit, push, then follow the run with `gh run list` /
 `gh run watch` and read failures with `gh run view --log-failed`.
 
+## Stay rebased on upstream
+
+This repo is a fork of `flectar/mail` (remote `upstream`). Rebase `main` onto
+`upstream/main` whenever possible — before starting new work and whenever
+upstream has moved:
+
+```
+git fetch upstream
+git rebase upstream/main
+git push --force-with-lease origin main
+```
+
+Resolve conflicts in favour of keeping our fork's changes on top. If a fork
+commit is now covered upstream, drop it. Push and let `quality.yml` verify the
+result.
+
 ## Message open timings
 
 Every message open appends one JSON line to
