@@ -27,6 +27,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::time::Duration;
 use tokio::sync::{mpsc, oneshot, watch};
 
+// Fork: background body prefetch.
+mod prefetch;
+
 const GMAIL_API: &str = "https://gmail.googleapis.com/gmail/v1/users/me";
 const GMAIL_BATCH_API: &str = "https://gmail.googleapis.com/batch/gmail/v1";
 const SYNC_PAGE_SIZE: usize = 100;
@@ -4397,6 +4400,8 @@ pub(super) fn spawn(
     let actor_ctx = ctx.clone();
     let actor_config = config.clone();
     vec![
+        // Fork: bodies downloaded ahead of time (gmail/prefetch.rs).
+        tokio::spawn(prefetch::run(ctx.clone(), config.clone(), settings_rx.clone())),
         tokio::spawn(async move { run_actor(actor_ctx, actor_config, rx, settings_rx).await }),
         tokio::spawn(async move { run_reader(ctx, config, body_rx).await }),
     ]

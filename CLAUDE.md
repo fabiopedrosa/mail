@@ -38,6 +38,16 @@ Resolve conflicts in favour of keeping our fork's changes on top. If a fork
 commit is now covered upstream, drop it. Push and let `quality.yml` verify the
 result.
 
+## Keep fork changes easy to rebase
+
+- New fork behaviour goes in its own file (e.g. `sync/gmail/prefetch.rs`),
+  hooked into upstream code by as few lines as possible.
+- Mark each hook in an upstream file with a `// Fork:` comment so a conflict
+  shows at once what is ours.
+- Don't reformat, rename or move upstream code we don't need to change.
+- New database migrations collide with upstream's numbering; avoid them when
+  a fork feature can work without one.
+
 ## Message open timings
 
 Every message open appends one JSON line to
