@@ -4401,7 +4401,11 @@ pub(super) fn spawn(
     let actor_config = config.clone();
     vec![
         // Fork: bodies downloaded ahead of time (gmail/prefetch.rs).
-        tokio::spawn(prefetch::run(ctx.clone(), config.clone(), settings_rx.clone())),
+        tokio::spawn(prefetch::run(
+            ctx.clone(),
+            config.clone(),
+            settings_rx.clone(),
+        )),
         tokio::spawn(async move { run_actor(actor_ctx, actor_config, rx, settings_rx).await }),
         tokio::spawn(async move { run_reader(ctx, config, body_rx).await }),
     ]
