@@ -15,6 +15,19 @@ blocks the session. Builds and checks happen in GitHub Actions instead:
 To verify a change: commit, push, then follow the run with `gh run list` /
 `gh run watch` and read failures with `gh run view --log-failed`.
 
+## Install every green build on Principal and estudio
+
+After a green `native-platforms.yml` run, install it on Principal (.2) **and**
+estudio (.7) without asking. Download + local install:
+`C:\GitHub\windows\setup_flectar_mail.md`. estudio:
+
+- `scp` the setup to `estudio:flectar-setup.exe`, then pipe a PowerShell script
+  through `ssh estudio "powershell -NoProfile -Command -"` (inline `$` over ssh
+  breaks): stop the app, install silently, delete the setup.
+- Relaunch through a temporary scheduled task (Interactive logon), then
+  unregister it. SSH runs outside session 1, so a plain start isn't visible.
+- Check: exe date = build date, process in SessionId 1.
+
 ## Stay rebased on upstream
 
 This repo is a fork of `flectar/mail` (remote `upstream`). Rebase `main` onto
