@@ -652,12 +652,15 @@ fn mail_shortcuts_act_on_what_has_focus() {
     assert_eq!(selected.get(), -1);
 
     // The list acts on the cursor row and moves on, as after a toolbar action.
+    // Fork: Delete archives and Shift+Delete trashes; A does nothing.
     key(ui.window(), "a");
+    assert!(take().is_empty(), "A is not Archive in the fork");
+    key(ui.window(), Key::Delete);
     assert_eq!(take(), [(1, "archive".to_owned())]);
     assert_eq!(selected.get(), 2, "the next message opens");
     key(ui.window(), "j");
     assert_eq!(take(), [(2, "spam".to_owned())]);
-    key(ui.window(), Key::Delete);
+    chord(ui.window(), Key::Shift, Key::Delete);
     assert_eq!(take(), [(3, "trash".to_owned())]);
     assert_eq!(selected.get(), 2, "the last row moves back instead");
     chord(ui.window(), Key::Shift, "A");
@@ -665,13 +668,13 @@ fn mail_shortcuts_act_on_what_has_focus() {
 
     ui.set_trash(true);
     selected.set(-1);
-    key(ui.window(), Key::Delete);
+    chord(ui.window(), Key::Shift, Key::Delete);
     assert_eq!(take(), [(2, "delete_permanently".to_owned())]);
     assert_eq!(selected.get(), -1, "the cursor waits for the confirmation");
     ui.set_trash(false);
 
     ui.set_checked_count(2);
-    key(ui.window(), "a");
+    key(ui.window(), Key::Delete);
     assert_eq!(
         take(),
         [(-1, "archive".to_owned())],
@@ -682,10 +685,10 @@ fn mail_shortcuts_act_on_what_has_focus() {
     // In the reader they act on the open conversation, as its toolbar does.
     key(ui.window(), Key::Return);
     key(ui.window(), "j");
-    key(ui.window(), Key::Delete);
+    chord(ui.window(), Key::Shift, Key::Delete);
     assert_eq!(take(), [(0, "spam".to_owned()), (0, "trash".to_owned())]);
     ui.set_draft(true);
-    key(ui.window(), "a");
+    key(ui.window(), Key::Delete);
     assert!(take().is_empty(), "drafts cannot be archived");
     ui.set_draft(false);
 
