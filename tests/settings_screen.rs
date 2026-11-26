@@ -261,8 +261,9 @@ fn settings_replaces_the_screen_it_opens_from() {
     assert_eq!(app.get_active_view(), "calendar");
     app.invoke_open_settings();
     draw();
-    click(&app, centre(&rail(&app, "Contacts")));
-    assert_eq!(app.get_active_view(), "contacts");
+    // Fork: the rail has no Contacts, so Files stands in for another screen.
+    click(&app, centre(&rail(&app, "Files")));
+    assert_eq!(app.get_active_view(), "files");
     app.hide().unwrap();
 }
 
