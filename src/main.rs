@@ -7801,6 +7801,8 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
             // An unknown key cannot come from the sidebar; keep the inbox
             // reachable rather than presenting a list for no mailbox.
             state.set_scope(scope);
+            // Fork: choosing a mailbox ends the search, so its list is the mailbox's.
+            state.query.clear();
             state.pending_selection = None;
             state.pending_selection_opens = false;
             state.restore_thread_message = None;

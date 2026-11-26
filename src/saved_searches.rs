@@ -139,11 +139,12 @@ impl Controller {
         else {
             return;
         };
-        app.set_search_query(query.as_str().into());
-        app.invoke_search_changed(query.into());
+        // Fork: the inbox first, as choosing a mailbox ends any search.
         if self.state.borrow().scope != Scope::UNIFIED_INBOX {
             app.invoke_select_scope(Scope::UNIFIED_INBOX.into());
         }
+        app.set_search_query(query.as_str().into());
+        app.invoke_search_changed(query.into());
     }
 
     /// Opens the dialog for keeping the list's search in the sidebar.
