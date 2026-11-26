@@ -204,7 +204,9 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          FORK_PULL_REQUEST: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+          # Fork: this fork can't pull the private image either, so its own
+          # runs skip the end-to-end sync tests too.
+          FORK_PULL_REQUEST: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) || github.repository != 'flectar/mail' }}
           # Pinned by digest, and the tag names the server commit it was built
           # from. Update both together when the tests need a newer server.
           SYNC_SERVER_IMAGE: ghcr.io/flectar/mail-sync-server:sha-11097b0@sha256:73141b5afdc57f5511512875c72d5d569d495aaaf5c082f2a992cfa3a40684e1
