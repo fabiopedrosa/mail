@@ -203,10 +203,11 @@ fn settings_replaces_the_screen_it_opens_from() {
     });
     let take = || std::mem::take(&mut *acted.borrow_mut());
 
-    // Opening a row gives the list the keyboard, and Delete trashes the row.
+    // Opening a row gives the list the keyboard, and Delete archives the row.
+    // Fork: Delete archives, Shift+Delete trashes.
     labelled(&app, "First sender, First message").accessible_action(&AccessibilityAction::Default);
     key(&app, Key::Delete);
-    assert_eq!(take(), [(1, "trash".to_owned())]);
+    assert_eq!(take(), [(1, "archive".to_owned())]);
     let divider = labelled(&app, "Message list width");
     let divider_at = centre(&divider);
     let geometry = divider.geometry();
