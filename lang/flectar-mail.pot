@@ -2051,8 +2051,6 @@ msgstr ""
 #: ui/app.slint:657 ui/components/calendar.slint:326 ui/components/calendar.slint:374 ui/components/calendar.slint:538
 #: ui/app.slint:657 ui/components/calendar.slint:326 ui/components/calendar.slint:374 ui/components/calendar.slint:538
 #: ui/app.slint:657 ui/components/calendar.slint:326 ui/components/calendar.slint:374 ui/components/calendar.slint:538
-#: ui/app.slint:657 ui/components/calendar.slint:326 ui/components/calendar.slint:374 ui/components/calendar.slint:538
-#: ui/app.slint:657 ui/components/calendar.slint:326 ui/components/calendar.slint:374 ui/components/calendar.slint:538
 msgid "Calendar"
 msgstr ""
 
@@ -3420,9 +3418,9 @@ msgstr ""
 msgid "Loading message…"
 msgstr ""
 
-#: ui/app.slint:1087 ui/components/workspace-navigation.slint:774
-#: ui/app.slint:1087 ui/components/workspace-navigation.slint:774 ui/tray.slint:23 ui/tray.slint:24
-#: ui/app.slint:1087 ui/components/workspace-navigation.slint:774 ui/tray.slint:23 ui/tray.slint:24 ui/tray.slint:26 ui/views/onboarding-view.slint:150
+#: ui/app.slint:1087 ui/components/workspace-navigation.slint:724
+#: ui/app.slint:1087 ui/components/workspace-navigation.slint:724 ui/tray.slint:23 ui/tray.slint:24
+#: ui/app.slint:1087 ui/components/workspace-navigation.slint:724 ui/tray.slint:23 ui/tray.slint:24 ui/tray.slint:26 ui/views/onboarding-view.slint:150
 msgid "Flectar Mail"
 msgstr ""
 
@@ -6714,8 +6712,6 @@ msgstr ""
 
 #: ui/components/tab-overview.slint:70
 #: ui/components/tab-overview.slint:70
-#: ui/components/tab-overview.slint:70
-#: ui/components/tab-overview.slint:70
 #: ui/components/tab-overview.slint:70 ui/dialogs/settings-dialog.slint:2364
 #: ui/components/tab-overview.slint:70 ui/dialogs/settings-dialog.slint:2364 ui/dialogs/settings-dialog.slint:3598
 #: ui/components/tab-overview.slint:70 ui/dialogs/settings-dialog.slint:2364 ui/dialogs/settings-dialog.slint:3598 ui/dialogs/settings-dialog.slint:4578
@@ -6931,15 +6927,15 @@ msgstr ""
 msgid "Save search…"
 msgstr ""
 
-#: ui/components/workspace-navigation.slint:262
+#: ui/components/workspace-navigation.slint:236
 msgid "Primary navigation"
 msgstr ""
 
-#: ui/components/workspace-navigation.slint:672
+#: ui/components/workspace-navigation.slint:622
 msgid "Close other tabs"
 msgstr ""
 
-#: ui/components/workspace-navigation.slint:677
+#: ui/components/workspace-navigation.slint:627
 msgid "Close tabs to the right"
 msgstr ""
 
